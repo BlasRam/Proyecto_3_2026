@@ -1,0 +1,45 @@
+#define LORA_RX 16
+#define LORA_TX 17
+
+void enviarComando(String comando, int espera_ms = 1000) {
+  Serial.print(">> ");
+  Serial.println(comando);
+
+  Serial2.print(comando);
+  Serial2.print("\r\n");
+
+  unsigned long inicio = millis();
+
+  while (millis() - inicio < espera_ms) {
+    while (Serial2.available()) {
+      char c = Serial2.read();
+      Serial.write(c);
+    }
+  }
+
+  Serial.println();
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+
+  Serial2.begin(115200, SERIAL_8N1, LORA_RX, LORA_TX);
+
+  Serial.println("Configurando RYLR998 como EMISOR...");
+
+  enviarComando("AT");
+  enviarComando("AT+ADDRESS=1");
+  enviarComando("AT+NETWORKID=5");
+  enviarComando("AT+BAND=915000000");
+  enviarComando("AT+PARAMETER=9,7,1,12");
+
+  Serial.println("Configuracion final:");
+  enviarComando("AT+ADDRESS?");
+  enviarComando("AT+NETWORKID?");
+  enviarComando("AT+BAND?");
+  enviarComando("AT+PARAMETER?");
+}
+
+void loop() {
+}
