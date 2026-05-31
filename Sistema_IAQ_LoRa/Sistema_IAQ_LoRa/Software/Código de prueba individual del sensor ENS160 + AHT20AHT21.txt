@@ -1,0 +1,130 @@
+#include <Wire.h>
+#include <Adafruit_AHTX0.h>
+#include "ScioSense_ENS160.h"
+
+// ======================= I2C =======================
+#define SDA_PIN 48
+#define SCL_PIN 47
+
+// Para ESP32 DevKit común usar:
+// #define SDA_PIN 21
+// #define SCL_PIN 22
+
+// ======================= SENSORES =======================
+Adafruit_AHTX0 aht;
+ScioSense_ENS160 ens160(ENS160_I2CADDR_1);
+
+// ======================= VARIABLES =======================
+float temperatura = 0;
+float humedad = 0;
+
+uint8_t aqi = 0;
+uint16_t tvoc = 0;
+uint16_t eco2 = 0;
+
+bool aht_ok = false;
+bool ens_ok = false;
+
+void leerSensores() {
+  if (aht_ok) {
+    sensors_event_t hum;
+    sensors_event_t temp;
+
+    aht.getEvent(&hum, &temp);
+
+    temperatura = temp.temperature;
+    humedad = hum.relative_humidity;
+  }
+
+  if (ens_ok) {
+    ens160.set_envdata(temperatura, humedad);
+    ens160.measure(true);
+
+    aqi = ens160.getAQI();
+    tvoc = ens160.getTVOC();
+    eco2 = ens160.geteCO2();
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(2000);
+
+  Serial.println();
+  Serial.println("==================================");
+  Serial.println("PRUEBA SENSOR ENS160 + AHT20/AHT21");
+  Serial.println("==================================");
+
+  Wire.begin(SDA_PIN, SCL_PIN);
+
+  Serial.print("SDA: GPIO");
+  Serial.println(SDA_PIN);
+
+  Serial.print("SCL: GPIO");
+  Serial.println(SCL_PIN);
+
+  // -------- AHT20/AHT21 --------
+  Serial.print("Inicializando AHT20/AHT21... ");
+
+  if (aht.begin(&Wire)) {
+    Serial.println("OK");
+    aht_ok = true;
+  } else {
+    Serial.println("ERROR");
+    aht_ok = false;
+  }
+
+  // -------- ENS160 --------
+  Serial.print("Inicializando ENS160... ");
+
+  ens160.begin();
+
+  if (ens160.available()) {
+    Serial.println("OK");
+    ens_ok = true;
+
+    Serial.print("Version ENS160: ");
+    Serial.print(ens160.getMajorRev());
+    Serial.print(".");
+    Serial.print(ens160.getMinorRev());
+    Serial.print(".");
+    Serial.println(ens160.getBuild());
+
+    ens160.setMode(ENS160_OPMODE_STD);
+  } else {
+    Serial.println("ERROR");
+    ens_ok = false;
+  }
+
+  Serial.println("==================================");
+}
+
+void loop() {
+  leerSensores();
+
+  Serial.println();
+  Serial.println("============== DATOS ==============");
+
+  Serial.print("Temperatura: ");
+  Serial.print(temperatura, 2);
+  Serial.println(" °C");
+
+  Serial.print("Humedad: ");
+  Serial.print(humedad, 2);
+  Serial.println(" %");
+
+  Serial.print("AQI: ");
+  Serial.println(aqi);
+
+  Serial.print("TVOC: ");
+  Serial.print(tvoc);
+  Serial.println(" ppb");
+
+  Serial.print("eCO2: ");
+  Serial.print(eco2);
+  Serial.println(" ppm");
+
+  Serial.println("===================================");
+
+  delay(5000);
+}
