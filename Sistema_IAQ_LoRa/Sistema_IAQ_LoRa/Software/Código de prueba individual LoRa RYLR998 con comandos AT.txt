@@ -1,0 +1,51 @@
+// =====================================================
+// ESP32 + RYLR998
+// Prueba individual con comandos AT
+// =====================================================
+//
+// Conexión:
+// ESP32 RX2 GPIO16  <- TXD del RYLR998
+// ESP32 TX2 GPIO17  -> RXD del RYLR998
+// GND común
+// VDD del RYLR998 -> 3V3
+
+#define LORA_RX 16
+#define LORA_TX 17
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+
+  Serial2.begin(115200, SERIAL_8N1, LORA_RX, LORA_TX);
+
+  Serial.println();
+  Serial.println("==================================");
+  Serial.println("ESP32 listo para comunicarse con RYLR998");
+  Serial.println("==================================");
+  Serial.println("Escribi comandos AT en el Monitor Serial.");
+  Serial.println("Configurar Monitor Serial:");
+  Serial.println("Baudios: 115200");
+  Serial.println("Final de linea: Both NL & CR");
+  Serial.println();
+  Serial.println("Comandos de prueba:");
+  Serial.println("AT");
+  Serial.println("AT+ADDRESS?");
+  Serial.println("AT+NETWORKID?");
+  Serial.println("AT+BAND?");
+  Serial.println("AT+PARAMETER?");
+  Serial.println("==================================");
+}
+
+void loop() {
+  // Datos que vienen del LoRa hacia el Monitor Serial
+  while (Serial2.available()) {
+    char c = Serial2.read();
+    Serial.write(c);
+  }
+
+  // Datos que escribís en el Monitor Serial hacia el LoRa
+  while (Serial.available()) {
+    char c = Serial.read();
+    Serial2.write(c);
+  }
+}
