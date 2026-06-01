@@ -63,6 +63,7 @@ Dependiendo de la iteración del prototipo, el sistema contempla o evalúa compo
 
 ```text
 /
+├── Software/          # Programacion (Codigos y Pruebas) del proyecto
 ├── docs/              # Documentación del proyecto
 ├── hardware/          # Esquemáticos, PCB, librerías y archivos de diseño
 ├── firmware/          # Código fuente del microcontrolador
